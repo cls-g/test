@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>每日食谱推荐</title>
+  <style>
+    :root {
+      --bg: #f5f0eb;
+      --surface: #ffffff;
+      --primary: #2d6a4f;
+      --primary-light: #40916c;
+      --accent: #d4a373;
+      --text: #1b2631;
+      --text-muted: #6b7280;
+      --border: #e5e0d8;
+      --shadow: 0 4px 24px rgba(45, 106, 79, 0.08);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      color: var(--text-muted);
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fafafa;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.15);
+      background: #fff;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      padding-right: 40px;
+    }
+
+    .input-wrap .unit {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .summary {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary.visible {
+      display: grid;
+    }
+
+    .stat {
+      background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat.gain {
+      background: linear-gradient(135deg, #fff7ed, #ffedd5);
+      border-color: #fed7aa;
+    }
+
+    .stat.maintain {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border-color: #bfdbfe;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat.gain .stat-value {
+      color: #c2410c;
+    }
+
+    .stat.maintain .stat-value {
+      color: #1d4ed8;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .goal-tip {
+      background: #fefce8;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.875rem;
+      color: #854d0e;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .goal-tip.visible {
+      display: block;
+    }
+
+    .meal-table-wrap {
+      overflow-x: auto;
+      display: none;
+    }
+
+    .meal-table-wrap.visible {
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    thead th {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    thead th:first-child {
+      border-radius: 10px 0 0 0;
+    }
+
+    thead th:last-child {
+      border-radius: 0 10px 0 0;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      vertical-align: top;
+    }
+
+    tbody td:first-child {
+      font-weight: 600;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .meal-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .cal-badge {
+      display: inline-block;
+      background: #ecfdf5;
+      color: var(--primary);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .macro-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .macro-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+    }
+
+    .macro-item .label {
+      color: var(--text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .macro-item .value {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .macro-item.carb .value { color: #2563eb; }
+    .macro-item.protein .value { color: #dc2626; }
+    .macro-item.fat .value { color: #d97706; }
+
+    tfoot td {
+      padding: 14px 16px;
+      background: #f0fdf4;
+      font-weight: 600;
+      border-top: 2px solid var(--primary-light);
+    }
+
+    tfoot .macro-total {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+
+    tfoot .macro-total span {
+      white-space: nowrap;
+    }
+
+    .food-list {
+      list-style: none;
+    }
+
+    .food-list li {
+      padding: 3px 0;
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .food-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      opacity: 0.4;
+      margin-bottom: 16px;
+    }
+
+    .error-msg {
+      color: #dc2626;
+      font-size: 0.8rem;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .field.error input {
+      border-color: #dc2626;
+    }
+
+    .field.error .error-msg {
+      display: block;
+    }
+
+    .food-picker-section {
+      display: none;
+    }
+
+    .food-picker-section.visible {
+      display: block;
+    }
+
+    .picker-hint {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      padding: 12px 14px;
+      background: #f0fdf4;
+      border-radius: 10px;
+      border: 1px solid #bbf7d0;
+    }
+
+    .meal-picker-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      background: #fafafa;
+    }
+
+    .meal-picker-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .meal-picker-title {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    .meal-picker-title span {
+      font-weight: 400;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-left: 8px;
+    }
+
+    .meal-budget {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+
+    .budget-bar {
+      width: 120px;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .budget-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s, background 0.3s;
+    }
+
+    .budget-fill.ok { background: var(--primary-light); }
+    .budget-fill.over { background: #dc2626; }
+    .budget-fill.under { background: #f59e0b; }
+
+    .budget-text.ok { color: var(--primary); }
+    .budget-text.over { color: #dc2626; }
+    .budget-text.under { color: #d97706; }
+
+    .food-category {
+      margin-bottom: 14px;
+    }
+
+    .food-category:last-child {
+      margin-bottom: 0;
+    }
+
+    .category-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    .food-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .food-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .food-chip:hover {
+      border-color: var(--primary-light);
+      background: #f0fdf4;
+    }
+
+    .food-chip.selected {
+      border-color: var(--primary);
+      background: #ecfdf5;
+      box-shadow: 0 0 0 2px rgba(64, 145, 108, 0.2);
+      color: var(--primary);
+    }
+
+    .selected-preview {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+      font-size: 0.82rem;
+    }
+
+    .selected-preview.empty {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .portion-list {
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .portion-list li {
+      padding: 4px 0;
+      padding-left: 14px;
+      position: relative;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .portion-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 0.75rem;
+    }
+
+    .picker-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-secondary {
+      padding: 12px 24px;
+      background: #fff;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: #f0fdf4;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    .combo-tip {
+      font-size: 0.8rem;
+      color: #166534;
+      margin-top: 6px;
+    }
+
+    .combo-tip.warn {
+      color: #b45309;
+    }
+
+    .combo-tip.error {
+      color: #dc2626;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>🥗 每日食谱推荐</h1>
+      <p>输入当前体重与目标体重，从减脂友好食材中自由搭配每日饮食</p>
+    </header>
+
+    <div class="card">
+      <div class="card-title">基本信息</div>
+      <form id="mealForm" class="form-grid">
+        <div class="field" id="currentField">
+          <label for="currentWeight">当前体重</label>
+          <div class="input-wrap">
+            <input type="number" id="currentWeight" min="30" max="200" step="0.1" placeholder="例如 70" required>
+            <span class="unit">kg</span>
+          </div>
+          <span class="error-msg">请输入 30–200 kg 之间的有效体重</span>
+        </div>
+        <div class="field" id="targetField">
+          <label for="targetWeight">目标体重</label>
+          <div class="input-wrap">
+            <input type="number" id="targetWeight" min="30" max="200" step="0.1" placeholder="例如 65" required>
+            <span class="unit">kg</span>
+          </div>
+          <span class="error-msg">请输入 30–200 kg 之间的有效体重</span>
+        </div>
+        <div class="field">
+          <label for="activity">活动水平</label>
+          <select id="activity">
+            <option value="1.2">久坐（几乎不运动）</option>
+            <option value="1.375" selected>轻度活动（每周 1–3 次）</option>
+            <option value="1.55">中度活动（每周 3–5 次）</option>
+            <option value="1.725">高度活动（每周 6–7 次）</option>
+          </select>
+        </div>
+        <div class="field">
+          <button type="submit" class="btn">计算热量并选餐</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="goalTip" class="goal-tip"></div>
+
+    <div id="summary" class="summary">
+      <div class="stat" id="statGoal">
+        <div class="stat-value" id="goalType">—</div>
+        <div class="stat-label">饮食目标</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="dailyCal">—</div>
+        <div class="stat-label">每日推荐热量 (kcal)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="weeksToGoal">—</div>
+        <div class="stat-label">预计达成 (周)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="weightDiff">—</div>
+        <div class="stat-label">需变化 (kg)</div>
+      </div>
+    </div>
+
+    <div id="foodPickerSection" class="card food-picker-section">
+      <div class="card-title">搭配每餐食物</div>
+      <p class="picker-hint">以下均为<strong>减脂友好</strong>食材，点击选择即可；<strong>份量和重量由系统根据每餐目标热量自动分配</strong>，确认后生成完整食谱表。</p>
+      <div id="mealPickers"></div>
+      <div class="picker-actions">
+        <button type="button" id="btnSmartPick" class="btn-secondary">智能推荐搭配</button>
+        <button type="button" id="btnConfirmMeals" class="btn">确认搭配，生成食谱表</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">每日食谱推荐表</div>
+      <div id="emptyState" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18"/>
+        </svg>
+        <p>填写体重并选择食物，点击「确认搭配」查看今日饮食计划</p>
+      </div>
+      <div id="mealTableWrap" class="meal-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>餐次</th>
+              <th>推荐食物</th>
+              <th>营养成分</th>
+              <th>营养要点</th>
+            </tr>
+          </thead>
+          <tbody id="mealBody"></tbody>
+          <tfoot id="mealFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MEAL_META = [
+      { key: "breakfast", name: "早餐", time: "7:00 – 8:00", ratio: 0.25 },
+      { key: "lunch", name: "午餐", time: "12:00 – 13:00", ratio: 0.35 },
+      { key: "dinner", name: "晚餐", time: "18:00 – 19:00", ratio: 0.30 },
+      { key: "snack", name: "加餐", time: "15:30 – 16:00", ratio: 0.10 },
+    ];
+
+    const CATEGORY_LABELS = {
+      staple: "主食（低 GI）",
+      protein: "优质蛋白",
+      vegetable: "蔬菜 / 水果",
+      extra: "汤品 / 其他",
+    };
+
+    const CATEGORY_BUDGET = {
+      breakfast: { staple: 0.32, protein: 0.30, vegetable: 0.18, extra: 0.05 },
+      lunch: { staple: 0.35, protein: 0.32, vegetable: 0.28, extra: 0.05 },
+      dinner: { staple: 0.20, protein: 0.32, vegetable: 0.40, extra: 0.08 },
+      snack: { staple: 0.08, protein: 0.35, vegetable: 0.47, extra: 0.10 },
+    };
+
+    const FOOD_OPTIONS = {
+      breakfast: {
+        staple: [
+          { id: "bf_oat", name: "燕麦", type: "weight", unit: "g", step: 5, min: 30, max: 70, per100: { cal: 380, carbs: 68, protein: 14, fat: 8 } },
+          { id: "bf_bread", name: "全麦面包", type: "count", unit: "片", step: 1, min: 1, max: 3, perUnit: { cal: 80, carbs: 14, protein: 4, fat: 1 } },
+          { id: "bf_sweetpotato", name: "蒸红薯", type: "weight", unit: "g", step: 10, min: 80, max: 200, per100: { cal: 87, carbs: 20, protein: 1, fat: 0 } },
+          { id: "bf_corn", name: "玉米", type: "count", unit: "根", step: 1, min: 1, max: 1, perUnit: { cal: 120, carbs: 26, protein: 4, fat: 1 } },
+          { id: "bf_quinoa", name: "藜麦", type: "weight", unit: "g", step: 5, min: 30, max: 60, per100: { cal: 368, carbs: 64, protein: 14, fat: 6 } },
+        ],
+        protein: [
+          { id: "bf_egg", name: "水煮蛋", type: "count", unit: "个", step: 1, min: 1, max: 2, perUnit: { cal: 78, carbs: 1, protein: 6, fat: 5 } },
+          { id: "bf_eggwhite", name: "鸡蛋白", type: "count", unit: "个", step: 1, min: 2, max: 4, perUnit: { cal: 17, carbs: 0, protein: 4, fat: 0 } },
+          { id: "bf_yogurt", name: "低脂酸奶", type: "weight", unit: "g", step: 10, min: 100, max: 200, per100: { cal: 60, carbs: 8, protein: 7, fat: 1 } },
+          { id: "bf_soymilk", name: "无糖豆浆", type: "volume", unit: "ml", step: 50, min: 200, max: 300, per100: { cal: 32, carbs: 2, protein: 3, fat: 2 } },
+          { id: "bf_cottage", name: "希腊酸奶", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 59, carbs: 3, protein: 10, fat: 0 } },
+        ],
+        vegetable: [
+          { id: "bf_tomato", name: "圣女果", type: "count", unit: "颗", step: 1, min: 5, max: 10, perUnit: { cal: 4, carbs: 1, protein: 0, fat: 0 } },
+          { id: "bf_blueberry", name: "蓝莓", type: "weight", unit: "g", step: 10, min: 40, max: 80, per100: { cal: 57, carbs: 14, protein: 1, fat: 0 } },
+          { id: "bf_apple", name: "苹果", type: "count", unit: "个", step: 1, min: 1, max: 1, perUnit: { cal: 95, carbs: 25, protein: 0, fat: 0 } },
+          { id: "bf_cucumber", name: "黄瓜", type: "count", unit: "根", step: 1, min: 1, max: 1, perUnit: { cal: 16, carbs: 3, protein: 1, fat: 0 } },
+          { id: "bf_spinach", name: "菠菜", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 23, carbs: 4, protein: 3, fat: 0 } },
+        ],
+        extra: [
+          { id: "bf_almond", name: "杏仁", type: "weight", unit: "g", step: 5, min: 8, max: 15, per100: { cal: 579, carbs: 20, protein: 21, fat: 50 } },
+          { id: "bf_coffee", name: "黑咖啡", type: "free", perUnit: { cal: 2, carbs: 0, protein: 0, fat: 0 } },
+          { id: "bf_tea", name: "绿茶", type: "free", perUnit: { cal: 0, carbs: 0, protein: 0, fat: 0 } },
+        ],
+      },
+      lunch: {
+        staple: [
+          { id: "ln_rice", name: "糙米饭", type: "weight", unit: "g", step: 10, min: 60, max: 120, per100: { cal: 116, carbs: 25, protein: 3, fat: 1 } },
+          { id: "ln_soba", name: "荞麦面", type: "weight", unit: "g", step: 10, min: 50, max: 90, per100: { cal: 340, carbs: 71, protein: 13, fat: 2 } },
+          { id: "ln_quinoarice", name: "藜麦饭", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 120, carbs: 21, protein: 4, fat: 2 } },
+          { id: "ln_brownrice", name: "杂粮饭", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 116, carbs: 24, protein: 3, fat: 1 } },
+          { id: "ln_konjac", name: "魔芋丝", type: "weight", unit: "g", step: 10, min: 100, max: 200, per100: { cal: 10, carbs: 2, protein: 0, fat: 0 } },
+        ],
+        protein: [
+          { id: "ln_chicken", name: "鸡胸肉", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 133, carbs: 0, protein: 25, fat: 3 } },
+          { id: "ln_fish", name: "清蒸鱼", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 118, carbs: 0, protein: 22, fat: 3 } },
+          { id: "ln_beef", name: "卤牛肉", type: "weight", unit: "g", step: 10, min: 70, max: 120, per100: { cal: 150, carbs: 2, protein: 26, fat: 4 } },
+          { id: "ln_shrimp", name: "白灼虾", type: "weight", unit: "g", step: 10, min: 100, max: 180, per100: { cal: 93, carbs: 1, protein: 19, fat: 1 } },
+          { id: "ln_tofu", name: "北豆腐", type: "weight", unit: "g", step: 10, min: 100, max: 180, per100: { cal: 80, carbs: 2, protein: 8, fat: 5 } },
+        ],
+        vegetable: [
+          { id: "ln_broccoli", name: "西兰花", type: "weight", unit: "g", step: 10, min: 150, max: 250, per100: { cal: 34, carbs: 7, protein: 3, fat: 0 } },
+          { id: "ln_mixedveg", name: "清炒时蔬", type: "weight", unit: "g", step: 10, min: 200, max: 300, per100: { cal: 30, carbs: 5, protein: 2, fat: 1 } },
+          { id: "ln_cucumber", name: "凉拌黄瓜", type: "weight", unit: "g", step: 10, min: 120, max: 200, per100: { cal: 30, carbs: 5, protein: 1, fat: 1 } },
+          { id: "ln_mushroom", name: "木耳拌菜", type: "weight", unit: "g", step: 10, min: 120, max: 200, per100: { cal: 37, carbs: 7, protein: 2, fat: 1 } },
+          { id: "ln_tomato", name: "番茄", type: "count", unit: "个", step: 1, min: 1, max: 2, perUnit: { cal: 33, carbs: 7, protein: 2, fat: 0 } },
+        ],
+        extra: [
+          { id: "ln_soup", name: "番茄蛋花汤", type: "fixed", display: "番茄蛋花汤 1 碗", perUnit: { cal: 60, carbs: 5, protein: 5, fat: 2 } },
+          { id: "ln_seaweed", name: "紫菜蛋汤", type: "fixed", display: "紫菜蛋汤 1 碗", perUnit: { cal: 45, carbs: 4, protein: 4, fat: 2 } },
+          { id: "ln_wintermelon", name: "冬瓜汤", type: "fixed", display: "冬瓜汤 1 碗", perUnit: { cal: 35, carbs: 6, protein: 2, fat: 0 } },
+        ],
+      },
+      dinner: {
+        staple: [
+          { id: "dn_corn", name: "玉米", type: "count", unit: "根", step: 1, min: 1, max: 1, perUnit: { cal: 120, carbs: 26, protein: 4, fat: 1 } },
+          { id: "dn_pumpkin", name: "蒸南瓜", type: "weight", unit: "g", step: 10, min: 150, max: 250, per100: { cal: 26, carbs: 6, protein: 1, fat: 0 } },
+          { id: "dn_konjac", name: "魔芋丝", type: "weight", unit: "g", step: 10, min: 100, max: 200, per100: { cal: 10, carbs: 2, protein: 0, fat: 0 } },
+          { id: "dn_rice", name: "糙米饭", type: "weight", unit: "g", step: 10, min: 40, max: 80, per100: { cal: 116, carbs: 25, protein: 3, fat: 1 } },
+        ],
+        protein: [
+          { id: "dn_shrimp", name: "清炒虾仁", type: "weight", unit: "g", step: 10, min: 80, max: 130, per100: { cal: 99, carbs: 1, protein: 21, fat: 1 } },
+          { id: "dn_tofu", name: "豆腐", type: "weight", unit: "g", step: 10, min: 100, max: 180, per100: { cal: 80, carbs: 2, protein: 8, fat: 5 } },
+          { id: "dn_fish", name: "清蒸鱼", type: "weight", unit: "g", step: 10, min: 80, max: 130, per100: { cal: 118, carbs: 0, protein: 22, fat: 3 } },
+          { id: "dn_pork", name: "瘦猪肉", type: "weight", unit: "g", step: 10, min: 60, max: 100, per100: { cal: 143, carbs: 0, protein: 21, fat: 6 } },
+          { id: "dn_chicken", name: "去皮鸡腿肉", type: "weight", unit: "g", step: 10, min: 80, max: 130, per100: { cal: 130, carbs: 0, protein: 22, fat: 4 } },
+        ],
+        vegetable: [
+          { id: "dn_greens", name: "清炒绿叶菜", type: "weight", unit: "g", step: 10, min: 200, max: 300, per100: { cal: 24, carbs: 4, protein: 2, fat: 0 } },
+          { id: "dn_salad", name: "大拌菜", type: "weight", unit: "g", step: 10, min: 180, max: 280, per100: { cal: 28, carbs: 5, protein: 1, fat: 1 } },
+          { id: "dn_bean", name: "凉拌豆芽", type: "weight", unit: "g", step: 10, min: 120, max: 200, per100: { cal: 30, carbs: 4, protein: 3, fat: 1 } },
+          { id: "dn_mushroom", name: "菌菇", type: "weight", unit: "g", step: 10, min: 120, max: 200, per100: { cal: 27, carbs: 4, protein: 3, fat: 0 } },
+          { id: "dn_cucumber", name: "黄瓜", type: "count", unit: "根", step: 1, min: 1, max: 1, perUnit: { cal: 16, carbs: 3, protein: 1, fat: 0 } },
+        ],
+        extra: [
+          { id: "dn_yogurt", name: "无糖酸奶", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 60, carbs: 5, protein: 10, fat: 0 } },
+          { id: "dn_mushroomsoup", name: "菌菇汤", type: "fixed", display: "菌菇汤 1 碗", perUnit: { cal: 40, carbs: 6, protein: 3, fat: 1 } },
+          { id: "dn_seaweed", name: "紫菜蛋汤", type: "fixed", display: "紫菜蛋汤 1 碗", perUnit: { cal: 45, carbs: 4, protein: 4, fat: 2 } },
+        ],
+      },
+      snack: {
+        staple: [
+          { id: "sn_ricecake", name: "无糖米饼", type: "count", unit: "片", step: 1, min: 1, max: 2, perUnit: { cal: 35, carbs: 7, protein: 1, fat: 0 } },
+        ],
+        protein: [
+          { id: "sn_yogurt", name: "希腊酸奶", type: "weight", unit: "g", step: 10, min: 80, max: 150, per100: { cal: 59, carbs: 3, protein: 10, fat: 0 } },
+          { id: "sn_bar", name: "低糖蛋白棒", type: "count", unit: "根", step: 1, min: 1, max: 1, perUnit: { cal: 120, carbs: 12, protein: 15, fat: 3 } },
+          { id: "sn_egg", name: "水煮蛋", type: "count", unit: "个", step: 1, min: 1, max: 1, perUnit: { cal: 78, carbs: 1, protein: 6, fat: 5 } },
+        ],
+        vegetable: [
+          { id: "sn_apple", name: "苹果", type: "count", unit: "个", step: 1, min: 1, max: 1, perUnit: { cal: 95, carbs: 25, protein: 0, fat: 0 } },
+          { id: "sn_berry", name: "莓类", type: "weight", unit: "g", step: 10, min: 60, max: 100, per100: { cal: 50, carbs: 12, protein: 1, fat: 0 } },
+          { id: "sn_cucumber", name: "黄瓜条", type: "fixed", display: "黄瓜条 + 小番茄 1 份", perUnit: { cal: 25, carbs: 5, protein: 1, fat: 0 } },
+          { id: "sn_orange", name: "橙子", type: "count", unit: "个", step: 1, min: 1, max: 1, perUnit: { cal: 62, carbs: 15, protein: 1, fat: 0 } },
+        ],
+        extra: [
+          { id: "sn_tea", name: "无糖茶", type: "free", perUnit: { cal: 0, carbs: 0, protein: 0, fat: 0 } },
+          { id: "sn_water", name: "气泡水", type: "free", perUnit: { cal: 0, carbs: 0, protein: 0, fat: 0 } },
+        ],
+      },
+    };
+
+    const MEAL_TIPS = {
+      breakfast: "早餐优先慢碳 + 蛋白，稳定血糖、延长饱腹",
+      lunch: "午餐高蛋白 + 足量蔬菜，控制油脂",
+      dinner: "晚餐少碳多菜，减轻夜间代谢负担",
+      snack: "加餐选低热量高纤维，避免正餐超标",
+    };
+
+    let currentPlan = null;
+    let selections = {};
+
+    function getFoodById(mealKey, foodId) {
+      for (const cat of Object.keys(FOOD_OPTIONS[mealKey])) {
+        const found = FOOD_OPTIONS[mealKey][cat].find((f) => f.id === foodId);
+        if (found) return { ...found, category: cat };
+      }
+      return null;
+    }
+
+    function getSelectedFoods(mealKey) {
+      return (selections[mealKey] || [])
+        .map((id) => getFoodById(mealKey, id))
+        .filter(Boolean);
+    }
+
+    function roundStep(value, step) {
+      return Math.round(value / step) * step;
+    }
+
+    function scaleNutrition(base, factor) {
+      return {
+        cal: Math.round(base.cal * factor),
+        carbs: Math.round(base.carbs * factor),
+        protein: Math.round(base.protein * factor),
+        fat: Math.round(base.fat * factor),
+      };
+    }
+
+    function buildPortionItem(food, amount, display) {
+      let macros;
+      if (food.type === "weight" || food.type === "volume") {
+        const factor = amount / 100;
+        macros = scaleNutrition(food.per100, factor);
+      } else {
+        macros = scaleNutrition(food.perUnit, amount);
+      }
+      return { name: food.name, display, ...macros };
+    }
+
+    function calcPortionFromBudget(food, budgetCal) {
+      if (food.type === "free") {
+        return { id: food.id, name: food.name, display: `${food.name} 1 杯`, cal: 0, carbs: 0, protein: 0, fat: 0 };
+      }
+      if (food.type === "fixed") {
+        const m = food.perUnit;
+        return { id: food.id, name: food.name, display: food.display, cal: m.cal, carbs: m.carbs, protein: m.protein, fat: m.fat };
+      }
+      if (food.type === "count") {
+        let count = Math.max(1, Math.round(budgetCal / food.perUnit.cal));
+        count = Math.max(food.min, Math.min(food.max, count));
+        count = roundStep(count, food.step);
+        return { ...buildPortionItem(food, count, `${food.name} ${count} ${food.unit}`), id: food.id };
+      }
+      const per = food.per100;
+      let amount = (budgetCal / per.cal) * 100;
+      amount = Math.max(food.min, Math.min(food.max, amount));
+      amount = roundStep(amount, food.step);
+      return { ...buildPortionItem(food, amount, `${food.name} ${amount}${food.unit}`), id: food.id, amount };
+    }
+
+    function allocateMealPortions(mealKey, selectedIds, targetCal) {
+      const budgets = CATEGORY_BUDGET[mealKey];
+      const byCategory = {};
+
+      selectedIds.forEach((id) => {
+        const food = getFoodById(mealKey, id);
+        if (!food) return;
+        if (!byCategory[food.category]) byCategory[food.category] = [];
+        byCategory[food.category].push(food);
+      });
+
+      let items = [];
+      Object.keys(budgets).forEach((cat) => {
+        const foods = byCategory[cat];
+        if (!foods || !foods.length) return;
+        const catBudget = targetCal * budgets[cat];
+        const perFoodBudget = catBudget / foods.length;
+        foods.forEach((food) => {
+          items.push(calcPortionFromBudget(food, perFoodBudget));
+        });
+      });
+
+      let totalCal = items.reduce((s, i) => s + i.cal, 0);
+      if (totalCal > targetCal * 1.1 && totalCal > 0) {
+        const scale = (targetCal * 0.98) / totalCal;
+        items = items.map((item) => {
+          const food = getFoodById(mealKey, item.id);
+          if (!food || food.type === "free" || food.type === "fixed") return item;
+          if (food.type === "count") {
+            let count = Math.max(food.min, Math.round(item.cal * scale / food.perUnit.cal));
+            count = Math.min(food.max, roundStep(count, food.step));
+            return { ...buildPortionItem(food, count, `${food.name} ${count} ${food.unit}`), id: food.id };
+          }
+          if (food.type === "weight" || food.type === "volume") {
+            let amount = item.amount || food.min;
+            amount = Math.max(food.min, roundStep(amount * scale, food.step));
+            amount = Math.min(food.max, amount);
+            return { ...buildPortionItem(food, amount, `${food.name} ${amount}${food.unit}`), id: food.id, amount };
+          }
+          return item;
+        });
+      }
+
+      return items;
+    }
+
+    function sumPortionMacros(items) {
+      return items.reduce(
+        (acc, i) => ({
+          cal: acc.cal + i.cal,
+          carbs: acc.carbs + i.carbs,
+          protein: acc.protein + i.protein,
+          fat: acc.fat + i.fat,
+        }),
+        { cal: 0, carbs: 0, protein: 0, fat: 0 }
+      );
+    }
+
+    function validateWeight(value) {
+      const n = parseFloat(value);
+      return !isNaN(n) && n >= 30 && n <= 200;
+    }
+
+    function estimateTDEE(weightKg, activityFactor) {
+      return Math.round(weightKg * 24 * activityFactor);
+    }
+
+    function calcPlan(current, target, activityFactor) {
+      const diff = target - current;
+      const tdee = estimateTDEE(current, activityFactor);
+      const absDiff = Math.abs(diff);
+
+      let goal, dailyCal, weeks, tip;
+
+      if (Math.abs(diff) < 0.5) {
+        goal = "maintain";
+        dailyCal = tdee;
+        weeks = 0;
+        tip = "当前体重与目标接近，以下减脂友好食材同样适合维持期，注意总量控制。";
+      } else if (diff < 0) {
+        goal = "loss";
+        const deficit = Math.min(750, Math.max(300, Math.round(absDiff * 80)));
+        dailyCal = Math.max(1200, tdee - deficit);
+        weeks = Math.ceil(absDiff / 0.5);
+        tip = `建议每日热量缺口约 ${tdee - dailyCal} kcal，预计 ${weeks} 周可健康减重 ${absDiff.toFixed(1)} kg。请从下方选择减脂食材搭配。`;
+      } else {
+        goal = "gain";
+        const surplus = Math.min(500, Math.max(250, Math.round(absDiff * 60)));
+        dailyCal = tdee + surplus;
+        weeks = Math.ceil(absDiff / 0.25);
+        tip = `增重目标下可适当增加所选食材份量；以下选项均为低脂高蛋白，避免无效增脂。`;
+      }
+
+      return { goal, dailyCal, weeks, diff: absDiff, tdee, tip };
+    }
+
+    function smartPickMeal(mealKey) {
+      const dayIndex = new Date().getDay();
+      const picked = [];
+
+      if (mealKey === "snack") {
+        const protein = FOOD_OPTIONS.snack.protein[dayIndex % FOOD_OPTIONS.snack.protein.length];
+        const veg = FOOD_OPTIONS.snack.vegetable[dayIndex % FOOD_OPTIONS.snack.vegetable.length];
+        return [protein.id, veg.id];
+      }
+
+      const order = ["staple", "protein", "vegetable", "extra"];
+      order.forEach((cat, i) => {
+        const pool = FOOD_OPTIONS[mealKey][cat];
+        if (!pool || !pool.length) return;
+        if (cat === "extra" && dayIndex % 2 === 1) return;
+        if (cat === "staple" && mealKey === "dinner" && dayIndex % 3 === 0) return;
+        picked.push(pool[(dayIndex + i) % pool.length].id);
+      });
+
+      return picked;
+    }
+
+    function applySmartPickAll() {
+      if (!currentPlan) return;
+      MEAL_META.forEach((meta) => {
+        selections[meta.key] = smartPickMeal(meta.key);
+      });
+      renderFoodPickers();
+    }
+
+    function renderMacroCell(macros) {
+      return `
+        <div class="macro-list">
+          <div class="macro-item carb">
+            <span class="label">碳水</span>
+            <span class="value">${macros.carbs} g</span>
+          </div>
+          <div class="macro-item protein">
+            <span class="label">蛋白质</span>
+            <span class="value">${macros.protein} g</span>
+          </div>
+          <div class="macro-item fat">
+            <span class="label">脂肪</span>
+            <span class="value">${macros.fat} g</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFoodPickers() {
+      const container = document.getElementById("mealPickers");
+      container.innerHTML = MEAL_META.map((meta) => {
+        const targetCal = Math.round(currentPlan.dailyCal * meta.ratio);
+        const selectedIds = selections[meta.key] || [];
+        const selected = getSelectedFoods(meta.key);
+        const portions = selectedIds.length
+          ? allocateMealPortions(meta.key, selectedIds, targetCal)
+          : [];
+
+        const categoriesHtml = Object.keys(FOOD_OPTIONS[meta.key]).map((cat) => {
+          const items = FOOD_OPTIONS[meta.key][cat];
+          if (!items.length) return "";
+          const chips = items.map((f) => {
+            const isSelected = selectedIds.includes(f.id);
+            return `
+              <button type="button" class="food-chip${isSelected ? " selected" : ""}"
+                data-meal="${meta.key}" data-id="${f.id}" aria-pressed="${isSelected}">
+                ${f.name}
+              </button>
+            `;
+          }).join("");
+          return `
+            <div class="food-category">
+              <div class="category-label">${CATEGORY_LABELS[cat] || cat}</div>
+              <div class="food-chips">${chips}</div>
+            </div>
+          `;
+        }).join("");
+
+        const previewContent = selected.length
+          ? `<strong>已选 ${selected.length} 项：</strong>${selected.map((f) => f.name).join("、")}
+             ${portions.length ? `<ul class="portion-list">${portions.map((p) => `<li>${p.display}</li>`).join("")}</ul>` : ""}`
+          : "尚未选择，可点击上方食物或使用「智能推荐搭配」";
+
+        return `
+          <div class="meal-picker-card" data-meal="${meta.key}">
+            <div class="meal-picker-header">
+              <div class="meal-picker-title">${meta.name}<span>${meta.time} · 目标约 ${targetCal} kcal</span></div>
+              <button type="button" class="btn-secondary btn-sm btn-reset-meal" data-meal="${meta.key}">重置</button>
+            </div>
+            ${categoriesHtml}
+            <div class="selected-preview${selected.length ? "" : " empty"}">${previewContent}</div>
+            ${portions.length ? '<div class="combo-tip">以上份量由系统根据目标热量自动计算，确认后可查看完整营养数据</div>' : ""}
+          </div>
+        `;
+      }).join("");
+
+      container.querySelectorAll(".food-chip").forEach((chip) => {
+        chip.addEventListener("click", () => toggleFood(chip.dataset.meal, chip.dataset.id));
+      });
+      container.querySelectorAll(".btn-reset-meal").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          selections[btn.dataset.meal] = [];
+          renderFoodPickers();
+        });
+      });
+    }
+
+    function toggleFood(mealKey, foodId) {
+      if (!selections[mealKey]) selections[mealKey] = [];
+      const idx = selections[mealKey].indexOf(foodId);
+      if (idx >= 0) {
+        selections[mealKey].splice(idx, 1);
+      } else {
+        selections[mealKey].push(foodId);
+      }
+      renderFoodPickers();
+    }
+
+    function buildMealsFromSelections() {
+      return MEAL_META.map((meta) => {
+        const targetCal = Math.round(currentPlan.dailyCal * meta.ratio);
+        const selectedIds = selections[meta.key] || [];
+        const portions = allocateMealPortions(meta.key, selectedIds, targetCal);
+        const totals = sumPortionMacros(portions);
+        return {
+          ...meta,
+          foods: portions.map((p) => p.display),
+          macros: { carbs: totals.carbs, protein: totals.protein, fat: totals.fat },
+          cal: totals.cal,
+          tip: MEAL_TIPS[meta.key],
+        };
+      });
+    }
+
+    function renderMealTable(meals, dailyCal) {
+      const tbody = document.getElementById("mealBody");
+      const tfoot = document.getElementById("mealFoot");
+      let totalCarbs = 0, totalProtein = 0, totalFat = 0, totalCal = 0;
+
+      tbody.innerHTML = meals.map((m) => {
+        totalCarbs += m.macros.carbs;
+        totalProtein += m.macros.protein;
+        totalFat += m.macros.fat;
+        totalCal += m.cal;
+        const foodsHtml = m.foods.length
+          ? m.foods.map((f) => `<li>${f}</li>`).join("")
+          : "<li>未选择</li>";
+        return `
+          <tr>
+            <td>
+              ${m.name}
+              <div class="meal-time">${m.time}</div>
+              <span class="cal-badge">${m.cal} kcal</span>
+            </td>
+            <td><ul class="food-list">${foodsHtml}</ul></td>
+            <td>${renderMacroCell(m.macros)}</td>
+            <td>${m.tip}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const calDiff = totalCal - dailyCal;
+      const diffNote = Math.abs(calDiff) <= dailyCal * 0.1
+        ? "与目标接近"
+        : calDiff > 0
+          ? `超出目标 ${calDiff} kcal`
+          : `低于目标 ${Math.abs(calDiff)} kcal`;
+
+      tfoot.innerHTML = `
+        <tr>
+          <td>全天合计</td>
+          <td>自选搭配</td>
+          <td>
+            <div class="macro-total">
+              <span style="color:#2563eb">碳水 ${totalCarbs} g</span>
+              <span style="color:#dc2626">蛋白质 ${totalProtein} g</span>
+              <span style="color:#d97706">脂肪 ${totalFat} g</span>
+            </div>
+          </td>
+          <td>${totalCal} kcal（目标 ${dailyCal}，${diffNote}）</td>
+        </tr>
+      `;
+    }
+
+    function updateSummary(plan) {
+      const summary = document.getElementById("summary");
+      const statGoal = document.getElementById("statGoal");
+      const labels = { loss: "健康减脂", gain: "科学增重", maintain: "体重维持" };
+
+      statGoal.className = "stat " + (plan.goal === "gain" ? "gain" : plan.goal === "maintain" ? "maintain" : "");
+      document.getElementById("goalType").textContent = labels[plan.goal];
+      document.getElementById("dailyCal").textContent = plan.dailyCal;
+      document.getElementById("weeksToGoal").textContent = plan.weeks || "—";
+      document.getElementById("weightDiff").textContent = plan.diff.toFixed(1);
+      summary.classList.add("visible");
+
+      const tipEl = document.getElementById("goalTip");
+      tipEl.textContent = "💡 " + plan.tip;
+      tipEl.classList.add("visible");
+    }
+
+    function confirmMeals() {
+      const emptyMeals = MEAL_META.filter((m) => getSelectedFoods(m.key).length === 0);
+      if (emptyMeals.length > 0) {
+        alert(`请为以下餐次至少选择一项食物：${emptyMeals.map((m) => m.name).join("、")}`);
+        return;
+      }
+      const meals = buildMealsFromSelections();
+      renderMealTable(meals, currentPlan.dailyCal);
+      document.getElementById("emptyState").style.display = "none";
+      document.getElementById("mealTableWrap").classList.add("visible");
+      document.getElementById("mealTableWrap").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.getElementById("mealForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const currentVal = document.getElementById("currentWeight").value;
+      const targetVal = document.getElementById("targetWeight").value;
+      const currentOk = validateWeight(currentVal);
+      const targetOk = validateWeight(targetVal);
+
+      document.getElementById("currentField").classList.toggle("error", !currentOk);
+      document.getElementById("targetField").classList.toggle("error", !targetOk);
+
+      if (!currentOk || !targetOk) return;
+
+      const current = parseFloat(currentVal);
+      const target = parseFloat(targetVal);
+      const activity = parseFloat(document.getElementById("activity").value);
+
+      currentPlan = calcPlan(current, target, activity);
+      selections = {};
+      MEAL_META.forEach((m) => { selections[m.key] = []; });
+
+      updateSummary(currentPlan);
+      applySmartPickAll();
+
+      document.getElementById("foodPickerSection").classList.add("visible");
+      document.getElementById("emptyState").style.display = "block";
+      document.getElementById("mealTableWrap").classList.remove("visible");
+      document.getElementById("foodPickerSection").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.getElementById("btnSmartPick").addEventListener("click", applySmartPickAll);
+    document.getElementById("btnConfirmMeals").addEventListener("click", confirmMeals);
+  </script>
+</body>
+</html>
